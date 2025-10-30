@@ -1,11 +1,15 @@
 ﻿<template>
   <div>
-    <header class="bg-white shadow p-4 sticky top-0 z-10">
-      <div class="max-w-6xl mx-auto flex justify-between items-center">
-        <h1 class="text-2xl font-bold">SmartSpend <span class="text-sm text-slate-500 font-normal">Demo</span></h1>
-        <div class="text-sm text-slate-600">Demo  Local-only  No keys</div>
-      </div>
-    </header>
+    <header class="app-topbar">
+  <div>
+    <div class="section-title">SmartSpend</div>
+    <div class="muted">Personal Finance Tracker</div>
+  </div>
+  <div>
+    <button class="btn-ghost">Import</button>
+    <button class="btn-primary">+ New Entry</button>
+  </div>
+</header>
 
     <main class="py-6">
       <DashboardView />
