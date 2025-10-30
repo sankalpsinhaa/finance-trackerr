@@ -274,6 +274,18 @@
   }
   function save(){ localStorage.setItem(LS_KEY, JSON.stringify(state)); update(); }
 
+  // Init default test data if empty (makes the site look full and smart)
+  function populateDemo(){ if(state.transactions.length)return; state.transactions = [
+    {id:'t1',date:recent(0),desc:'Salary Oct',cat:'Salary',amount:50000,notes:''},
+    {id:'t2',date:recent(-1),desc:'Groceries (weekly)',cat:'Groceries',amount:-1850,notes:''},
+    {id:'t3',date:recent(-2),desc:'Coffee: Blue Bottle',cat:'Coffee',amount:-240,notes:''},
+    {id:'t4',date:recent(-10),desc:'Electricity bill',cat:'Bills',amount:-2200,notes:''},
+    {id:'t5',date:recent(-6),desc:'Uber',cat:'Transport',amount:-650,notes:''},
+    {id:'t6',date:recent(-15),desc:'Movie + Snacks',cat:'Entertainment',amount:-1200,notes:''},
+    {id:'t7',date:recent(-25),desc:'Freelance',cat:'Salary',amount:8000,notes:''},
+    {id:'t8',date:recent(-35),desc:'Groceries (monthly)',cat:'Groceries',amount:-4200,notes:''},
+  ]; save(); toast('Demo data preloaded'); }
+
   function recent(days){ const d=new Date(); d.setDate(d.getDate()+days); return d.toISOString().slice(0,10); }
 
   // Create Transaction
@@ -422,17 +434,9 @@
   });
 
   // Utility: ensure demo always present on fresh installs
-    // Start empty (no demo data)
- // Start empty (no demo data). If there's a saved state, keep it; otherwise start with empty transactions.
-if (!Array.isArray(state.transactions)) state.transactions = [];
-if (state.transactions.length === 0) {
-  state.transactions = []; // ensure it's an empty array
-  save(); // persist an empty state (if your app uses save())
-}
+  if(state.transactions.length===0) populateDemo();
 
 })();
 </script>
 </body>
 </html>
-
- 
