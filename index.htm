@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>SmartSpend — Simple Live Demo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#9aa4b2;--accent:#06b6d4;--accent-2:#60a5fa;}
+    *{box-sizing:border-box}body{font-family:Inter,system-ui,Segoe UI,Roboto,"Helvetica Neue",Arial;background:linear-gradient(180deg,#071128 0,#051025 100%);color:#e6eef6;margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
+    .wrap{width:100%;max-width:980px}
+    header{display:flex;align-items:center;gap:12px;margin-bottom:18px}
+    .logo{background:linear-gradient(135deg,var(--accent),var(--accent-2));width:52px;height:52px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#021122}
+    h1{font-size:20px;margin:0}
+    .layout{display:grid;grid-template-columns:1fr 360px;gap:18px}
+    .card{background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.03);padding:18px;border-radius:12px;backdrop-filter:blur(6px)}
+    form .row{display:flex;gap:8px;margin-bottom:10px}
+    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
+    input,select,button,textarea{padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit;font-size:14px}
+    input::placeholder{color:#7f8b99}
+    button.primary{background:linear-gradient(90deg,var(--accent),var(--accent-2));border:none;color:#021128;font-weight:600;cursor:pointer}
+    .list{max-height:260px;overflow:auto;margin-top:8px}
+    .item{display:flex;justify-content:space-between;padding:10px;border-radius:8px;margin-bottom:8px;background:rgba(255,255,255,0.015)}
+    .muted{color:var(--muted);font-size:13px}
+    .controls{display:flex;gap:8px;align-items:center}
+    .chart-wrap{height:220px}
+    .big{font-size:28px;font-weight:700}
+    .small{font-size:13px;color:var(--muted)}
+    footer{margin-top:12px;color:var(--muted);font-size:13px;text-align:center}
+    @media(max-width:880px){.layout{grid-template-columns:1fr;}.chart-wrap{height:200px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="logo">SS</div>
+      <div>
+        <h1>SmartSpend — Demo</h1>
+        <div class="muted">Single-file static version — copy/paste to GitHub Pages</div>
+      </div>
+      <div style="margin-left:auto" class="controls">
+        <button id="exportBtn" class="primary" style="padding:8px 12px">Export CSV</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <div>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div>
+              <div class="muted">Balance</div>
+              <div class="big" id="balance">₹0.00</div>
+            </div>
+            <div style="text-align:right">
+              <div class="small">Total expenses</div>
+              <div id="total" class="muted">₹0.00</div>
+            </div>
+          </div>
+
+          <form id="addForm">
+            <div class="row">
+              <div style="flex:1">
+                <label>Category</label>
+                <select id="category" required>
+                  <option value="">Select</option>
+                  <option>Groceries</option>
+                  <option>Transport</option>
+                  <option>Coffee</option>
+                  <option>Bills</option>
+                  <option>Entertainment</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div style="width:120px">
+                <label>Amount</label>
+                <input id="amount" type="number" step="0.01" placeholder="₹0.00" required>
+              </div>
+            </div>
+
+            <div class="row">
+              <div style="flex:1">
+                <label>Date</label>
+                <input id="date" type="date" required>
+              </div>
+              <div style="width:120px">
+                <label>&nbsp;</label>
+                <button class="primary" style="width:100%" type="submit">Add</button>
+              </div>
+            </div>
+          </form>
+
+          <div style="margin-top:12px;display:flex;justify-content:space-between;align-items:center">
+            <div class="muted">Recent</div>
+            <button id="clearBtn" class="" title="Clear all" style="background:transparent;border:1px solid rgba(255,255,255,0.03);padding:6px 8px;border-radius:8px">Clear</button>
+          </div>
+
+          <div class="list" id="list"></div>
+
+        </div>
+
+        <footer>
+          Static demo • no server • works on GitHub Pages
+        </footer>
+      </div>
+
+      <aside>
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+            <div>
+              <div class="muted">Spending by category</div>
+            </div>
+            <div>
+              <button id="aiBtn" class="" style="padding:6px 10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03)">AI insights</button>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="chart"></canvas>
+          </div>
+          <div style="margin-top:12px" id="insights" class="muted"></div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    // Simple local-storage backed app
+    const STORAGE_KEY = 'smartspend_demo_v1';
+    const defaultData = [
+      {id: genId(), category:'Groceries', amount: 450.50, date: today(-3)},
+      {id: genId(), category:'Coffee', amount: 120.00, date: today(-2)},
+      {id: genId(), category:'Transport', amount: 80.00, date: today(-1)},
+      {id: genId(), category:'Bills', amount: 900.00, date: today(-10)}
+    ];
+
+    function genId(){ return Math.random().toString(36).slice(2,9) }
+    function today(offset=0){ const d=new Date(); d.setDate(d.getDate()+offset); return d.toISOString().slice(0,10) }
+
+    let data = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || defaultData;
+    const listEl = document.getElementById('list');
+    const totalEl = document.getElementById('total');
+    const balanceEl = document.getElementById('balance');
+    const form = document.getElementById('addForm');
+    const categoryEl = document.getElementById('category');
+    const amountEl = document.getElementById('amount');
+    const dateEl = document.getElementById('date');
+    const clearBtn = document.getElementById('clearBtn');
+    const aiBtn = document.getElementById('aiBtn');
+    const insights = document.getElementById('insights');
+    const exportBtn = document.getElementById('exportBtn');
+
+    dateEl.value = today(0);
+
+    function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); render(); }
+
+    function addExpense(item){ data.unshift(item); save(); }
+
+    function removeExpense(id){ data = data.filter(d=>d.id!==id); save(); }
+
+    function clearAll(){ if(confirm('Clear all data?')){ data=[]; save(); } }
+
+    function format(n){ return '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits:2,maximumFractionDigits:2}) }
+
+    function render(){
+      listEl.innerHTML = '';
+      if(data.length===0){
+        listEl.innerHTML = '<div class="muted" style="padding:12px">No expenses yet — add one.</div>'
+      } else {
+        for(const it of data){
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.innerHTML = `<div>
+                              <div style="font-weight:600">${escapeHtml(it.category)}</div>
+                              <div class="muted">${escapeHtml(it.date)}</div>
+                            </div>
+                            <div style="text-align:right">
+                              <div style="font-weight:700">${format(it.amount)}</div>
+                              <div style="margin-top:6px"><button data-id="${it.id}" style="background:transparent;border:1px solid rgba(255,255,255,0.03);padding:6px 8px;border-radius:8px">Delete</button></div>
+                            </div>`;
+          listEl.appendChild(div);
+          div.querySelector('button').addEventListener('click', ()=>{ removeExpense(it.id) });
+        }
+      }
+      const total = data.reduce((s,x)=>s+Number(x.amount),0);
+      totalEl.textContent = format(total);
+      // For demo: balance = 50000 - total
+      const balance = 50000 - total;
+      balanceEl.textContent = format(balance);
+
+      updateChart();
+    }
+
+    form.addEventListener('submit', e=>{
+      e.preventDefault();
+      const cat = categoryEl.value || 'Other';
+      const amt = Number(amountEl.value || 0);
+      const dt = dateEl.value || today(0);
+      if(!amt || amt<=0){ alert('Please enter a valid amount'); return; }
+      addExpense({id: genId(), category: cat, amount: Math.round(amt*100)/100, date: dt});
+      categoryEl.value=''; amountEl.value=''; dateEl.value = today(0);
+    });
+
+    clearBtn.addEventListener('click', clearAll);
+
+    // chart
+    const ctx = document.getElementById('chart').getContext('2d');
+    let chart = new Chart(ctx, {
+      type: 'doughnut',
+      data: { labels: [], datasets: [{data: [], backgroundColor: ['#06b6d4','#60a5fa','#f97316','#f43f5e','#7c3aed','#10b981']}]},
+      options: { plugins:{legend:{position:'bottom',labels:{color:'#cfe8ff'}}}, maintainAspectRatio:false }
+    });
+
+    function updateChart(){
+      const byCat = {};
+      for(const it of data) byCat[it.category] = (byCat[it.category]||0) + Number(it.amount);
+      const labels = Object.keys(byCat);
+      const values = labels.map(l=>Math.round(byCat[l]*100)/100);
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = values;
+      chart.update();
+    }
+
+    // AI insights (fake, local)
+    aiBtn.addEventListener('click', ()=>{
+      const total = data.reduce((s,x)=>s+Number(x.amount),0);
+      const top = getTopCategory();
+      const msg = `In the last ${Math.min(30, Math.max(1,data.length))} entries your top category is ${top || '—'}. Estimated monthly spend: ${format((total/Math.max(1,Math.min(30,data.length)))*30)}. Consider trimming ${top || 'unnecessary items'}.`;
+      insights.textContent = msg;
+      // small highlight
+      insights.style.color = '#bfefff';
+      setTimeout(()=> insights.style.color = '', 3500);
+    });
+
+    function getTopCategory(){
+      const map = {};
+      for(const it of data) map[it.category] = (map[it.category]||0) + Number(it.amount);
+      let best = null, val=0;
+      for(const k in map) if(map[k] > val){ best=k; val = map[k] }
+      return best;
+    }
+
+    // CSV export
+    exportBtn.addEventListener('click', ()=>{
+      if(!data.length){ alert('No data to export'); return; }
+      const rows = [['id','category','amount','date']];
+      for(const r of data) rows.push([r.id, r.category, r.amount, r.date]);
+      const csv = rows.map(r=>r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], {type:'text/csv'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'expenses.csv'; a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    // small helper
+    function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])) }
+
+    // init
+    render();
+
+    // convenience: if localStorage empty, keep demo defaults
+    (function autosaveOnUnload(){
+      window.addEventListener('beforeunload', ()=>localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) );
+    })();
+  </script>
+</body>
+</html>
