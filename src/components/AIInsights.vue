@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="bg-white p-4 rounded-lg shadow">
+ <div class="card">
     <div class="flex justify-between items-start">
       <h4 class="font-semibold">Smart Insights</h4>
       <button @click="regen" class="text-sm text-blue-600">Refresh</button>
