@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>SmartSpend — Simple Live Demo</title>
+  <title>SmartSpend — Expense Tracker</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
   <style>
     :root{--bg:#0f1724;--card:#0b1220;--muted:#9aa4b2;--accent:#06b6d4;--accent-2:#60a5fa;}
@@ -35,8 +35,8 @@
     <header>
       <div class="logo">SS</div>
       <div>
-        <h1>SmartSpend — Demo</h1>
-        <div class="muted">Single-file static version — copy/paste to GitHub Pages</div>
+        <h1>SmartSpend</h1>
+        <div class="muted">Track your expenses and stay in control</div>
       </div>
       <div style="margin-left:auto" class="controls">
         <button id="exportBtn" class="primary" style="padding:8px 12px">Export CSV</button>
@@ -95,20 +95,13 @@
           </div>
 
           <div class="list" id="list"></div>
-
         </div>
-
-        <footer>
-          Static demo • no server • works on GitHub Pages
-        </footer>
       </div>
 
       <aside>
         <div class="card">
           <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-            <div>
-              <div class="muted">Spending by category</div>
-            </div>
+            <div class="muted">Spending by category</div>
             <div>
               <button id="aiBtn" class="" style="padding:6px 10px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03)">AI insights</button>
             </div>
@@ -122,10 +115,8 @@
     </div>
   </div>
 
-  <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script>
-    // Simple local-storage backed app
     const STORAGE_KEY = 'smartspend_demo_v1';
     const defaultData = [
       {id: genId(), category:'Groceries', amount: 450.50, date: today(-3)},
@@ -153,13 +144,9 @@
     dateEl.value = today(0);
 
     function save(){ localStorage.setItem(STORAGE_KEY, JSON.stringify(data)); render(); }
-
     function addExpense(item){ data.unshift(item); save(); }
-
     function removeExpense(id){ data = data.filter(d=>d.id!==id); save(); }
-
     function clearAll(){ if(confirm('Clear all data?')){ data=[]; save(); } }
-
     function format(n){ return '₹' + Number(n).toLocaleString('en-IN', {minimumFractionDigits:2,maximumFractionDigits:2}) }
 
     function render(){
@@ -184,10 +171,7 @@
       }
       const total = data.reduce((s,x)=>s+Number(x.amount),0);
       totalEl.textContent = format(total);
-      // For demo: balance = 50000 - total
-      const balance = 50000 - total;
-      balanceEl.textContent = format(balance);
-
+      balanceEl.textContent = format(50000 - total);
       updateChart();
     }
 
@@ -203,7 +187,6 @@
 
     clearBtn.addEventListener('click', clearAll);
 
-    // chart
     const ctx = document.getElementById('chart').getContext('2d');
     let chart = new Chart(ctx, {
       type: 'doughnut',
@@ -221,13 +204,11 @@
       chart.update();
     }
 
-    // AI insights (fake, local)
     aiBtn.addEventListener('click', ()=>{
       const total = data.reduce((s,x)=>s+Number(x.amount),0);
       const top = getTopCategory();
-      const msg = `In the last ${Math.min(30, Math.max(1,data.length))} entries your top category is ${top || '—'}. Estimated monthly spend: ${format((total/Math.max(1,Math.min(30,data.length)))*30)}. Consider trimming ${top || 'unnecessary items'}.`;
+      const msg = `Your top spending category is ${top || '—'}. Estimated monthly spend: ${format((total/Math.max(1,data.length))*30)}. Consider trimming ${top || 'unnecessary items'}.`;
       insights.textContent = msg;
-      // small highlight
       insights.style.color = '#bfefff';
       setTimeout(()=> insights.style.color = '', 3500);
     });
@@ -240,7 +221,6 @@
       return best;
     }
 
-    // CSV export
     exportBtn.addEventListener('click', ()=>{
       if(!data.length){ alert('No data to export'); return; }
       const rows = [['id','category','amount','date']];
@@ -252,16 +232,12 @@
       URL.revokeObjectURL(url);
     });
 
-    // small helper
     function escapeHtml(s){ return String(s).replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m])) }
 
-    // init
     render();
-
-    // convenience: if localStorage empty, keep demo defaults
-    (function autosaveOnUnload(){
-      window.addEventListener('beforeunload', ()=>localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) );
-    })();
+    window.addEventListener('beforeunload', ()=>localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) );
   </script>
 </body>
 </html>
+
+          
