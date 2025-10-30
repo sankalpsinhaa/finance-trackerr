@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="bg-white p-4 rounded-lg shadow max-w-md mx-auto">
+  <div class="card">
     <h3 class="font-semibold mb-3">Add Expense</h3>
     <form @submit.prevent="onSubmit" class="space-y-2">
       <div>
