@@ -1,5 +1,5 @@
 ﻿<template>
-  <div class="bg-white p-4 rounded-lg shadow">
+ <div class="card">
     <h4 class="font-semibold mb-2">{{ title }}</h4>
     <canvas ref="cnv"></canvas>
   </div>
