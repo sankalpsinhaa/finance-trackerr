@@ -1,5 +1,5 @@
 ﻿<template>
-  <div>
+  <div class="app-shell">
     <header class="app-topbar">
   <div>
     <div class="section-title">SmartSpend</div>
