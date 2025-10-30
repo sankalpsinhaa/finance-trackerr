@@ -434,7 +434,8 @@
   });
 
   // Utility: ensure demo always present on fresh installs
-  if(state.transactions.length===0) populateDemo();
+    // Start empty (no demo data)
+  if(state.transactions.length===0) save();
 
 })();
 </script>
